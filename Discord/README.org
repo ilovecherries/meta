@@ -1,0 +1,6 @@
+#+TITLE: Discord
+
+* Install for Debian
+#+begin_src shell
+  just debian
+#+end_src

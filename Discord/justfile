@@ -1,0 +1,4 @@
+debian:
+	curl -L "https://discord.com/api/download?platform=linux&format=deb" --output $PWD/discord.deb
+	sudo apt install "$PWD/discord.deb"
+	rm "$PWD/discord.deb"
