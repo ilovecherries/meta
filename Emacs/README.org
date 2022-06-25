@@ -1,0 +1,36 @@
+#+TITLE: Emacs
+
+This installs Emacs from the master branch with native compilation and other optimizations.
+
+This is what I personally use for working on things.
+
+* TODO Install Dependencies
+This installs dependencies assuming you are using Debian 11 for building Emacs.
+
+#+begin_src shell
+  just install-deps
+#+end_src
+
+* Configure
+#+begin_src shell
+  just configure
+#+end_src
+
+* Build
+#+begin_src shell
+  just
+#+end_src
+
+* Install
+#+begin_src shell
+  just install
+#+end_src
+
+* Link Emacs Configuration
+This links the Emacs configuration in ~./config~ to ~$HOME/.config/emacs~.
+
+Make sure to delete ~.emacs.d~ and ~.emacs~ in the home directory as those have a higher precedence than emacs
+
+#+begin_src shell
+  just link
+#+end_src

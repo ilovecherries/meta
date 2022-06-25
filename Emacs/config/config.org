@@ -1,0 +1,887 @@
+#+TITLE: Cherry's Emacs Configuration
+#+AUTHOR: Cherry
+
+* Miscellaneous
+** Backups
+#+begin_src emacs-lisp
+  (setq backup-directory-alist (list (cons "." (concat user-emacs-directory "backups"))))
+
+  (setq backup-by-copying t)
+
+  (setq delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+#+end_src
+
+** Warnings
+#+BEGIN_SRC emacs-lisp
+  (setq warning-minimal-level :emergency)
+#+END_SRC
+
+** Don't ask to kill processes when exiting
+#+BEGIN_SRC emacs-lisp
+  (setq confirm-kill-processes nil)
+#+END_SRC
+
+** Delete selection
+#+BEGIN_SRC emacs-lisp
+  (delete-selection-mode +1)
+#+END_SRC
+
+** Inhibit startup screen
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-screen t)
+#+END_SRC
+
+** Disable bell notification
+#+BEGIN_SRC emacs-lisp
+  (setq ring-bell-function 'ignore)
+#+END_SRC
+
+** Duplicate PATH into Emacs
+#+begin_src emacs-lisp
+  (defun set-exec-path-from-shell-PATH ()
+    "Set up Emacs' `exec-path' and PATH environment variable to match
+  that used by the user's shell.
+
+  This is particularly useful under Mac OS X and macOS, where GUI
+  apps are not started from a shell."
+    (interactive)
+    (let ((path-from-shell (replace-regexp-in-string
+			    "[ \t\n]*$" "" (shell-command-to-string
+					    "$SHELL --login -c 'echo $PATH'"
+					    ))))
+      (setenv "PATH" path-from-shell)
+      (setq exec-path (split-string path-from-shell path-separator))))
+
+  (unless (string-equal system-type "windows-nt")
+   (set-exec-path-from-shell-PATH))
+#+end_src
+
+** Save Place
+#+begin_src emacs-lisp
+  (save-place-mode 1)
+#+end_src
+
+** Automatically Refresh Buffers
+#+begin_src emacs-lisp
+  (global-auto-revert-mode t)
+#+end_src
+
+** Mac Modifier Key
+#+begin_src emacs-lisp
+  (setq mac-command-modifier 'meta)
+#+end_src
+
+** Enable copypasting outside of Emacs
+#+begin_src emacs-lisp
+  (setq x-select-enable-clipboard t)
+#+end_src
+* Packages
+** Repositories
+#+BEGIN_SRC emacs-lisp
+  (setq package-enable-at-startup nil)
+
+  (setq package-archives '(("ELPA"  . "http://tromey.com/elpa/")
+			   ("gnu"   . "http://elpa.gnu.org/packages/")
+			   ("melpa" . "https://melpa.org/packages/")))
+  (package-initialize)
+#+END_SRC
+
+** straight.el
+#+BEGIN_SRc emacs-lisp
+  ;; (defvar bootstrap-version)
+  ;; (let ((bootstrap-file
+  ;;    (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+  ;;   (bootstrap-version 5))
+  ;;   (unless (file-exists-p bootstrap-file)
+  ;;     (with-current-buffer
+  ;;     (url-retrieve-synchronously
+  ;;      "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+  ;;      'silent 'inhibit-cookies)
+  ;;   (goto-char (point-max))
+  ;;   (eval-print-last-sexp)))
+  ;;   (load bootstrap-file nil 'nomessage))
+#+END_SRC
+
+** use-package
+#+BEGIN_SRC emacs-lisp
+  ;; (straight-use-package 'use-package)
+  (require 'use-package)
+  ;; (setq straight-use-package-by-default t)
+  (require 'use-package-ensure)
+  (setq use-package-always-ensure t)
+#+END_SRC
+
+** Quelpa
+#+begin_src emacs-lisp
+  (use-package quelpa)
+#+end_src
+
+* Appearance
+** Icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+#+end_src
+
+** Pixel Resize
+#+begin_src emacs-lisp
+  (setq frame-resize-pixelwise t)
+#+end_src
+
+** Theme
+#+begin_src emacs-lisp
+  ;; (load-theme 'dichromacy t)
+  ;; (use-package dracula-theme
+  ;;   :config
+  ;;   (load-theme 'dracula t))
+  ;; (use-package moe-theme
+  ;;   :config
+  ;;   (load-theme 'moe-dark t))
+
+  (setq modus-themes-mode-line '(borderless moody))
+  (setq modus-themes-region '(accented bg-only))
+  (setq modus-themes-completions 'moderate)
+  (setq modus-themes-bold-constructs nil)
+  (setq modus-themes-paren-match '(bold intense))
+  (setq modus-themes-italic-constructs t)
+  (setq modus-themes-syntax '(alt-syntax yellow-comments))
+  (setq modus-themes-org-blocks 'gray-background)
+
+  (load-theme 'modus-vivendi t)
+#+end_src
+
+*** Font
+#+BEGIN_SRC emacs-lisp
+  (defconst cherry/font-name "Hack Nerd Font FC Ligatured CCG")
+  (when (find-font (font-spec :name cherry/font-name))
+    (let ((modeline-font-size 16)
+          (font-size 16))
+      (add-to-list 'default-frame-alist (cons 'font (format "%s-%d" cherry/font-name font-size)))
+      (set-face-attribute 'default nil :font (format "%s-%d" cherry/font-name font-size))
+      (set-face-attribute 'mode-line nil :font (format "%s-%d" cherry/font-name modeline-font-size))
+      (set-face-attribute 'mode-line-inactive nil :font (format "%s-%d" cherry/font-name modeline-font-size))
+      (custom-set-faces '(fixed-pitch-serif ((t (:family cherry/font-name)))))))
+#+END_SRC
+
+** Remove ugly GUI components
+#+BEGIN_SRC emacs-lisp
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+END_SRC
+
+** Modeline
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish)
+  (column-number-mode 1)
+#+END_SRC
+
+** Moody
+#+begin_src emacs-lisp
+  (use-package moody
+    :disabled
+    :config
+    (setq x-underline-at-descent-line t)
+    (moody-replace-mode-line-buffer-identification)
+    (moody-replace-vc-mode)
+    (moody-replace-eldoc-minibuffer-message-function))
+#+end_src
+
+** Fill Column
+#+BEGIN_SRC emacs-lisp
+  (use-package visual-fill-column
+    :defer t
+    :hook (visual-line-mode . visual-fill-column-mode)
+    :init
+    (setq-default fill-column 100))
+#+END_SRC
+
+** which-key
+#+begin_src emacs-lisp
+  (use-package which-key
+    :diminish
+    :config (which-key-mode))
+#+end_src
+
+** Beacon
+#+begin_src emacs-lisp
+  (use-package beacon
+    :diminish
+    :disabled t
+    :config (beacon-mode 1))
+#+end_src
+
+* Navigation
+** EVIL
+#+begin_src emacs-lisp
+  (use-package evil
+    :disabled
+    :init
+    (setq evil-want-integration t
+          evil-want-keybinding nil)
+    :config (evil-mode 1))
+
+  (use-package evil-collection
+    :disabled
+    :after evil
+    :diminish evil-collection-unimpaired-mode
+    :config
+    (evil-collection-init))
+#+end_src
+
+** Consult
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :defer t
+    :bind (([remap switch-to-buffer] . consult-buffer)
+           ([remap project-switch-to-buffer] . consult-project-buffer)
+           ([remap goto-line] . consult-goto-line)
+           ("M-s M-i" . consult-imenu)
+           ("M-s M-s" . consult-line)
+           ("M-s M-g" . consult-git-grep)))
+#+END_SRC
+
+** Orderless
+#+BEGIN_SRC emacs-lisp
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+END_SRC
+
+** Vertico
+#+BEGIN_SRC emacs-lisp
+  (use-package vertico
+    :init
+    (vertico-mode))
+#+END_SRC
+
+** Undo-tree
+#+BEGIN_SRC emacs-lisp
+  (use-package vundo)
+#+END_SRC
+
+** Expand Region
+#+BEGIN_SRC emacs-lisp
+  (use-package expand-region
+    :bind ("C-=" . er/expand-region))
+#+END_SRC
+
+* Programming
+** Indentation
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 4)
+  (setq-default standard-indent 4)
+  (defvaralias 'c-basic-offset 'tab-width)
+  (setq-default electric-indent-inhibit t)
+  (setq-default js-indent-level tab-width)
+#+END_SRC
+
+*** Aggressive Indentation
+#+BEGIN_SRC emacs-lisp
+  (use-package aggressive-indent
+    :defer t
+    :hook (emacs-lisp-mode . aggressive-indent-mode))
+#+END_SRC
+
+** Strip Trailing Whitespace
+#+BEGIN_SRC emacs-lisp
+  (setq whitespace-style '(trailing lines space-before-tab
+                                    indentation space-after-tab))
+#+END_SRC
+
+** Rainbow Delimiters
+Adds rainbow highlighting to brackets.
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-delimiters
+    :defer t
+    :hook (prog-mode . rainbow-delimiters-mode))
+#+END_SRC
+
+** Highlight Parentheses
+Highlights the parentheses that you are currently inside
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'prog-mode-hook #'show-paren-mode)
+#+END_SRC
+
+** Corfu (Auto-completion)
+#+BEGIN_SRC emacs-lisp
+  (use-package corfu
+    :custom
+    (corfu-auto t)
+    (corfu-auto-prefix 1)
+    (corfu-auto-delay 0)
+    :init
+    ;; in the future, it will be exclusive to just programming modes.
+    (global-corfu-mode))
+#+END_SRC
+
+*** Icons
+#+BEGIN_SRC emacs-lisp
+  (use-package kind-icon
+    :ensure t
+    :after corfu
+    :custom
+    (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+    :config
+   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+#+END_SRC
+
+*** Doc
+#+begin_src emacs-lisp
+  (use-package corfu-doc
+    :hook (corfu-mode . corfu-doc-mode))
+#+end_src
+
+#+RESULTS:
+
+*** Terminal
+#+begin_src emacs-lisp
+  (quelpa '(popon
+            :fetcher git
+            :url "https://codeberg.org/akib/emacs-popon.git"))
+
+  (quelpa '(corfu-terminal
+            :fetcher git
+            :url "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+#+end_src
+
+**** Documentation
+#+begin_src emacs-lisp
+  (quelpa '(corfu-doc-terminal
+            :fetcher git
+            :url "https://codeberg.org/akib/emacs-corfu-doc-terminal.git"))
+
+  (add-hook 'corfu-terminal-mode-hook 'corfu-doc-terminal-mode)
+#+end_src
+
+** FlyMake
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'prog-mode-hook 'flymake-mode)
+  (custom-set-variables
+   '(help-at-pt-timer-delay 0.1)
+   '(help-at-pt-display-when-idle '(flymake-diagnostic)))
+#+END_SRC
+
+** Expand Region
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :bind (("C-=" . er/expand-region)))
+#+end_src
+
+** Eldoc
+#+begin_src emacs-lisp
+  (use-package eldoc
+    :diminish)
+#+end_src
+
+*** Eldoc Box
+#+BEGIN_SRC emacs-lisp
+  (use-package eldoc-box)
+#+END_SRC
+
+** Dumb Jump (jumps to references)
+#+BEGIN_SRC emacs-lisp
+  (use-package dumb-jump
+    :defer t
+    :config (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+#+END_SRC
+
+** Line Numbers
+Depending whether you are on insert or normal mode, it will swap the line
+number display mode.
+#+BEGIN_SRC emacs-lisp
+  (setq display-line-numbers-type 'relative)
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+#+END_SRC
+
+** Electric Pairs
+Automatically closes parentheses
+#+BEGIN_SRC emacs-lisp
+  (setq electric-pair-pairs '((?\{ . ?\})
+                              (?\( . ?\))
+                              (?\[ . ?\])
+                              (?\" . ?\")))
+  (electric-pair-mode t)
+#+END_SRC
+
+** Magit
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :defer t
+    :bind (("C-x g" . magit-status)))
+#+END_SRC
+
+** YaSnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :defer t
+    :diminish yas-minor-mode
+    :hook ((latex-mode org-mode prog-mode) . yas-minor-mode))
+
+  (use-package yasnippet-snippets
+    :after (yasnippet))
+#+END_SRC
+
+** Eglot
+#+BEGIN_SRC emacs-lisp
+  (use-package eglot
+    :bind (:map eglot-mode-map
+                ([remap display-local-help] . eldoc-box-eglot-help-at-point)
+                ("C-." . eglot-code-actions)
+                ("<f2>" . eglot-rename))
+    :defer t)
+#+END_SRC
+
+** LSP Bridge
+#+begin_src emacs-lisp
+  (quelpa '(lsp-bridge
+            :fetcher git
+            :url "https://github.com/manateelazycat/lsp-bridge.git"))
+#+end_src
+
+
+** LSP
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :defer t
+    :bind (:map lsp-mode-map
+                ("C-." . lsp-execute-code-action)
+                ("M-." . xref-find-definitions)
+                ("<f2>" . lsp-rename))
+    :custom
+    (lsp-enable-on-type-formatting nil)
+    (lsp-eldoc-hook nil)
+    (lsp-prefer-capf t)
+    (lsp-treemacs-sync-mode 1)
+    (lsp-enable-indentation nil)
+    (lsp-headerline-breadcrumb-enable nil))
+#+END_SRC
+
+** TreeSitter
+#+begin_src emacs-lisp
+  (use-package tree-sitter)
+  (use-package tree-sitter-langs
+    :after (tree-sitter))
+#+end_src
+
+** Highlight Diffs
+#+begin_src emacs-lisp
+  (use-package diff-hl
+    :defer t
+    :hook (prog-mode . (lambda ()
+                         (diff-hl-flydiff-mode)
+                         (diff-hl-mode))))
+#+end_src
+
+** Guess Indent
+#+begin_src emacs-lisp
+  (use-package dtrt-indent
+    :diminish
+    :hook (prog-mode . dtrt-indent-mode))
+#+end_src
+
+#+RESULTS:
+
+** Programming Languages
+*** C
+#+BEGIN_SRC emacs-lisp
+  ;; (add-hook 'c-mode-hook #'lsp-deferred)
+#+END_SRC
+
+**** BEAR - Generate compilation database for clang
+#+begin_src emacs-lisp
+  ;; (defun cherry/start-process (process-name args &optional directory)
+  ;;   "Start PROCESS-NAME with ARGS as a single string."
+  ;;   (defmacro cherry/start-process--process-args (process-name buffer args)
+  ;;     `(progn (display-buffer ,'buffer)
+  ;;             (start-process ,process-name
+  ;; 						   ',buffer
+  ;; 						   ,process-name
+  ;; 						   ,args)))
+  ;;   (let ((buffer (get-buffer-create (format "*%s-output-buffer*" process-name)))
+  ;;         (split-args (split-string args))
+  ;;         (default-directory (or directory default-directory)))
+  ;;     (cherry/start-process process-name buffer split-args)))
+
+  ;; (defun cherry/bear-build-database (build-command)
+  ;;   "Build a database for clang using BEAR to use with LSP with a BUILD-COMMAND."
+  ;;   (interactive "sBuild commands for current project: ")
+  ;;   (cherry/start-process "bear"
+  ;;                         (concat "-- " build-command)
+  ;;                         (projectile-project-root)))
+#+end_src
+
+*** SmileBASIC
+#+BEGIN_SRC emacs-lisp
+  (quelpa '(smilebasic
+            :fetcher git
+            :url "https://github.com/y-ack/smilebasic-mode.git"))
+
+  (add-hook 'smilebasic-mode-hook (lambda () (run-hooks 'prog-mode-hook)))
+#+END_SRC
+
+*** Rust
+#+BEGIN_SRC emacs-lisp
+  (use-package rustic
+    :defer t
+    :after (aggressive-indent)
+    :init
+    (setq lsp-rust-server 'rust-analyzer)
+    (setq rustic-format-on-save t)
+    ;; :hook (rustic-mode . (aggressive-indent-mode lsp-deferred))
+    (add-hook 'rustic-mode-hook #'aggressive-indent-mode))
+#+END_SRC
+
+*** JavaScript
+#+BEGIN_SRC emacs-lisp
+  ;; (add-hook 'js-mode-hook #'lsp-deferred)
+#+END_SRC
+
+**** REPL
+#+begin_src emacs-lisp
+  (use-package js-comint
+    :config
+    (add-hook 'js-mode-hook
+              (lambda ()
+                (local-set-key (kbd "C-c C-c") #'js-send-buffer)
+                (local-set-key (kbd "C-c C-p") #'run-js))))
+#+end_src
+
+**** Vue
+#+begin_src emacs-lisp
+  (use-package vue-mode
+    :disabled
+    :config
+    (add-to-list 'eglot-server-programs '(vue-mode . ("/opt/homebrew/bin/vue-language-server" "--stdio"))))
+#+end_src
+
+*** TypeScript
+#+BEGIN_SRC emacs-lisp
+  (use-package typescript-mode
+    :defer t)
+#+END_SRC
+
+*** Common LISP (SLIME)
+#+BEGIN_SRC emacs-lisp
+  (use-package slime
+    :defer t
+    :init
+    (setq inferior-lisp-program "sbcl")
+    :config
+    (use-package slime-company
+      :config (setq slime-company-completion 'fuzzy
+                    slime-company-after-completion 'slime-company-just-one-space))
+    (slime-setup '(slime-fancy slime-company slime-quicklisp slime-asdf))
+    (sp-local-pair 'lisp-mode "'" :nil :actions nil))
+#+END_SRC
+
+**** org-babel support
+#+BEGIN_SRC emacs-lisp
+  (require 'ob-lisp)
+#+END_SRC
+
+*** HTML
+#+BEGIN_SRC emacs-lisp
+  (use-package simple-httpd
+    :config (httpd-start))
+
+  (use-package impatient-mode
+    :after (simple-httpd))
+
+  (defun cherry/impatient-in-the-browser ()
+    (interactive)
+    (browse-url (format "http://localhost:8080/imp/live/%s/" (current-buffer))))
+
+  (use-package web-mode
+    :defer t
+    :mode ("\\.phtml\\'" "\\.tpl\\.php\\'" "\\.jsp\\'" "\\.as[cp]x\\'"
+           "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.jst.ejs\\'"
+           "\\.html?\\'" "\\.vue\\'")
+    :hook (web-mode . lsp-deferred)
+    :config
+    (add-hook 'web-mode-hook '(lambda () (impatient-mode t)))
+    :bind (("<f5>" . cherry/impatient-in-the-browser))
+    )
+
+  (use-package emmet-mode
+    :defer t
+    :after (web-mode)
+    :hook (sqml-mode web-mode css-mode))
+
+#+END_SRC
+
+*** CSS
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'css-mode-hook 'impatient-mode)
+
+  (use-package rainbow-mode
+    :defer t
+    :hook (css-mode))
+#+END_SRC
+
+*** CMake
+#+begin_src emacs-lisp
+  (use-package cmake-mode
+    :defer t)
+#+end_src
+
+*** Python
+**** LSP
+#+begin_src emacs-lisp
+  (use-package python
+    :defer t
+    :custom (python-shell-interpreter "python3"))
+
+  (use-package lsp-python-ms
+    :after (python)
+    :custom
+    (lsp-python-auto-install-server t))
+#+end_src
+
+**** IPython
+#+BEGIN_SRC emacs-lisp
+  (use-package ob-ipython
+    :config
+    ;;(add-to-list 'org-babel-load-languages '(ipython . t))
+    )
+#+END_SRC
+
+*** Nim
+#+begin_src emacs-lisp
+  (use-package flycheck-nimsuggest
+    :defer t)
+
+  (use-package nim-mode
+    :after (flycheck-nimsuggest)
+    :defer t
+    :config
+    (add-hook 'nimsuggest-mode-hook 'flycheck-nimsuggest-setup)
+    (add-hook 'nim-mode-hook 'nimsuggest-mode)
+    (add-to-list 'eglot-server-programs '(nim-mode . ("/Users/cherry/.nimble/bin/nimlsp"))))
+#+end_src
+
+*** Dart
+#+begin_src emacs-lisp
+  (use-package dart-mode)
+
+  (use-package lsp-dart
+    :after (dart-mode)
+    :hook (dart-mode . lsp-deferred))
+
+  (use-package hover
+    :after (dart-mode)
+    :config
+    (setq hover-command-path "/home/cherry/go/bin/hover"))
+#+end_src
+
+*** C#
+#+begin_src emacs-lisp
+  (use-package csharp-mode
+    :defer t)
+#+end_src
+
+*** Mermaid (Diagrams)
+#+begin_src emacs-lisp
+  (use-package mermaid-mode
+    :defer t)
+
+  (use-package ob-mermaid
+    :init
+    (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc"))
+#+end_src
+
+*** Haskell
+#+begin_src emacs-lisp
+  (use-package haskell-mode)
+#+end_src
+
+*** PlantUML
+#+begin_src emacs-lisp
+  ;; todo: need to make these variables from nix-shellx'
+  (use-package plantuml-mode
+    :config
+    (let ((path  "/nix/store/p9ajjyxf6gfwpa1x7ar8jx2g3iv6p4q9-plantuml-1.2022.3/lib/plantuml.jar"))
+      (setq plantuml-jar-path path)
+      (setq plantuml-default-exec-mode 'jar)
+      (setq org-plantuml-jar-path (expand-file-name path))
+      (setenv "GRAPHVIZ_DOT" "/nix/store/qp2lxqgwqr71kdzw1bvl3v3zm2z0icm0-graphviz-2.50.0/bin/dot")))
+#+end_src
+
+#+RESULTS:
+: t
+
+*** Pug Markup
+#+begin_src emacs-lisp
+  (use-package pug-mode)
+#+end_src
+
+*** Clojure
+#+begin_src emacs-lisp
+  (use-package clojure-mode)
+#+end_src
+
+**** CIDER
+#+begin_src emacs-lisp
+  (use-package cider)
+#+end_src
+
+*** D
+#+begin_src emacs-lisp
+  (use-package d-mode
+    :config
+    (add-to-list 'eglot-server-programs '(d-mode . ("~/bin/serve-d"))))
+#+end_src
+
+* Org
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'org-mode-hook #'org-indent-mode)
+  (add-hook 'org-mode-hook #'visual-line-mode)
+  (setq org-adapt-indentation nil)
+#+END_SRC
+
+** TODO Embed YouTube Videos
+https://github.com/TobiasZawada/org-yt
+
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package org-yt)
+#+END_SRC
+
+** Org Babel
+#+BEGIN_SRC emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((plantuml . t)))
+#+END_SRC
+
+#+RESULTS:
+
+* EWW
+** Center text and wrap
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'eww-mode-hook #'visual-line-mode)
+#+END_SRC
+
+* Dashboard
+#+BEGIN_SRC emacs-lisp
+  (use-package page-break-lines
+    :defer t)
+
+  (use-package dashboard
+    :after (page-break-lines)
+    :custom
+    (dashboard-items '((recents . 10)
+                       (agenda . 10)
+                       (bookmarks . 5)))
+    :config
+    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+    (setq inhibit-start-message t)
+    (dashboard-setup-startup-hook))
+#+END_SRC
+
+* Scripts
+** 3y3ify
+Source (Decoder): https://synthetic.garden/3y3.htm
+
+#+BEGIN_SRC emacs-lisp
+  (defun 3y3ify (input)
+    "Converts the INPUT to second sight encoding."
+    (interactive "sText to convert to second sight: ")
+    (kill-new (concat (mapcar #'(lambda (x) (+ x 917504)) input)))
+    (message "The converted text has been put in your kill ring"))
+#+END_SRC
+
+* shell-pop
+#+begin_src emacs-lisp
+  (use-package shell-pop
+    :defer t
+    :config
+    ;; fixes a bug where frames will swap randomly
+    (push (cons "\\*shell\\*" display-buffer--same-window-action) display-buffer-alist)
+    :bind (("M-[" . shell-pop)))
+#+end_src
+
+* Terminal
+#+begin_src emacs-lisp
+  (use-package vterm
+    :defer t)
+  (use-package multi-vterm
+    :defer t
+    :hook (vterm-mode . hide-mode-line-mode))
+#+end_src
+
+* Keybinds
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-M-y") 'backward-up-list)
+  (global-set-key (kbd "C-M-u") 'down-list)
+
+  (global-set-key (kbd "C-S-SPC")
+                  (lambda ()
+                    (interactive)
+                    (move-end-of-line nil)
+                    (set-mark-command nil)
+                    (move-beginning-of-line nil)))
+
+
+#+end_src
+
+* Elcord
+#+begin_src emacs-lisp
+  (use-package elcord
+    :config
+    (defun cy/elcord-project-name (status)
+      "Append the current project name to the buffer STATUS."
+      (concat status
+              (if (project-current)
+                  (format " (%s)"
+                          (file-name-nondirectory
+                           (directory-file-name (project-root (project-current)))))
+                "")))
+    (advice-add 'elcord-buffer-details-format
+                :filter-return #'cy/elcord-project-name)
+    (elcord-mode))
+#+end_src
+
+#+RESULTS:
+: t
+
+* EMMS
+#+begin_src emacs-lisp
+  (use-package emms
+    :config
+    (require 'emms-setup) 
+    (require 'emms-player-mpd)
+    (require 'emms-volume)
+    (emms-all)
+    (setq emms-seek-seconds 5
+          emms-player-list '(emms-player-mpd)
+          emms-info-functions '(emms-info-mpd)
+          emms-volume-change-function 'emms-volume-mpd-change
+          emms-player-mpd-music-directory "~/Music") ;FIXME: use mpd.conf
+
+    ;; set mpd address and port
+    (setq emms-player-mpd-server-name "localhost")
+    (setq emms-player-mpd-server-port "6600"))
+#+end_src
+
+* EXWM
+#+begin_src emacs-lisp
+  (use-package exwm
+    :config
+    (require 'exwm)
+    (require 'exwm-config)
+    (exwm-config-example))
+#+end_src
+
+** Linux App Launcher
+#+begin_src emacs-lisp
+  (quelpa '(app-launcher
+            :fetcher git
+            :url "https://github.com/SebastienWae/app-launcher.git"))
+
+  (global-set-key (kbd "M-X") #'app-launcher-run-app)
+#+end_src

@@ -1,0 +1,8 @@
+build:
+	make -j6 -C ./emacs
+
+configure:
+	(cd ./emacs && ./configure --with-json --with-native-compilation --with-mailutils CFLAGS="-O3 -mtune=native -march=native -flto" LDFLAGS="-flto" -C --prefix=$HOME/.local)
+
+link:
+	ln -s $PWD/config $HOME/.config/emacs

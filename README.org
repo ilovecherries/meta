@@ -1,0 +1,7 @@
+#+TITLE: Meta
+#+AUTHOR: Cherry
+
+This is equivalent to dot files probably.
+
+* Emacs
+Text editor.
