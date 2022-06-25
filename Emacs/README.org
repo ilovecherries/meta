@@ -11,6 +11,11 @@ This installs dependencies assuming you are using Debian 11 for building Emacs.
   just install-deps
 #+end_src
 
+* Clone
+#+begin_src shell
+  just clone
+#+end_src
+
 * Configure
 #+begin_src shell
   just configure
