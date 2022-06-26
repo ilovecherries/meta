@@ -872,6 +872,7 @@ Source (Decoder): https://synthetic.garden/3y3.htm
 #+begin_src emacs-lisp
   (use-package exwm
     :config
+    :when (eq system-type 'gnu/linux)
     (require 'exwm)
     (require 'exwm-config)
     (exwm-config-example))
