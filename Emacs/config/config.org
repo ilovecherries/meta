@@ -165,6 +165,8 @@
       (custom-set-faces '(fixed-pitch-serif ((t (:family cherry/font-name)))))))
 #+END_SRC
 
+#+RESULTS:
+
 ** Remove ugly GUI components
 #+BEGIN_SRC emacs-lisp
   (menu-bar-mode -1)
@@ -288,11 +290,26 @@
     :hook (emacs-lisp-mode . aggressive-indent-mode))
 #+END_SRC
 
+*** Smart Tabs Mode
+This helps with alignment and prints out spaces for alignments the entire way instead of fucking up the entire file with biased dumb shit.
+
+#+begin_src emacs-lisp
+  (use-package smart-tabs-mode
+    :config
+    (smart-tabs-add-language-support javascript1 js-mode-hook
+                                     ((js-indent-line . js-indent-level)
+                                      (js-indent-region . js-indent-level)))
+    (smart-tabs-insinuate 'javascript1 'javascript))
+#+end_src
+
 ** Strip Trailing Whitespace
 #+BEGIN_SRC emacs-lisp
-  (setq whitespace-style '(trailing lines space-before-tab
-                                    indentation space-after-tab))
+  (setq whitespace-style '(space-after-tab
+                           face))
+  (add-hook 'prog-mode-hook #'whitespace-mode)
 #+END_SRC
+
+#+RESULTS:
 
 ** Rainbow Delimiters
 Adds rainbow highlighting to brackets.
@@ -416,6 +433,17 @@ Automatically closes parentheses
     :bind (("C-x g" . magit-status)))
 #+END_SRC
 
+** hl-todo
+#+begin_src emacs-lisp
+  (use-package hl-todo
+    :hook (prog-mode . hl-todo-mode))
+#+end_src
+
+** Project
+TODO make todo search
+#+begin_src emacs-lisp
+#+end_src
+
 ** YaSnippet
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet
@@ -443,7 +471,6 @@ Automatically closes parentheses
             :fetcher git
             :url "https://github.com/manateelazycat/lsp-bridge.git"))
 #+end_src
-
 
 ** LSP
 #+BEGIN_SRC emacs-lisp
