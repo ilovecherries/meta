@@ -49,15 +49,21 @@
   apps are not started from a shell."
     (interactive)
     (let ((path-from-shell (replace-regexp-in-string
-			    "[ \t\n]*$" "" (shell-command-to-string
-					    "$SHELL --login -c 'echo $PATH'"
-					    ))))
+                "[ \t\n]*$" "" (shell-command-to-string
+                        "$SHELL --login -c 'echo $PATH'"
+                        ))))
       (setenv "PATH" path-from-shell)
       (setq exec-path (split-string path-from-shell path-separator))))
 
   (unless (string-equal system-type "windows-nt")
-   (set-exec-path-from-shell-PATH))
+    (set-exec-path-from-shell-PATH))
+
+  ;; Making emacs find latex (so that C-c C-x C-l works on orgmode)
+  (setenv "PATH" (concat ":/Library/TeX/texbin/" (getenv "PATH")))
+  (add-to-list 'exec-path "/Library/TeX/texbin/")
 #+end_src
+
+#+RESULTS:
 
 ** Save Place
 #+begin_src emacs-lisp
@@ -404,7 +410,6 @@ Highlights the parentheses that you are currently inside
 ** Dumb Jump (jumps to references)
 #+BEGIN_SRC emacs-lisp
   (use-package dumb-jump
-    :defer t
     :config (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 #+END_SRC
 
@@ -432,6 +437,13 @@ Automatically closes parentheses
     :defer t
     :bind (("C-x g" . magit-status)))
 #+END_SRC
+
+*** Orgit
+~org-store-link~ inside of magit buffers to refer to in org-mode
+#+begin_src emacs-lisp
+  (use-package orgit
+    :defer t)
+#+end_src
 
 ** hl-todo
 #+begin_src emacs-lisp
@@ -567,6 +579,8 @@ TODO make todo search
 *** JavaScript
 #+BEGIN_SRC emacs-lisp
   ;; (add-hook 'js-mode-hook #'lsp-deferred)
+  (use-package js2-mode
+    :hook (js-mode . js2-minor-mode))
 #+END_SRC
 
 **** REPL
@@ -600,10 +614,7 @@ TODO make todo search
     :init
     (setq inferior-lisp-program "sbcl")
     :config
-    (use-package slime-company
-      :config (setq slime-company-completion 'fuzzy
-                    slime-company-after-completion 'slime-company-just-one-space))
-    (slime-setup '(slime-fancy slime-company slime-quicklisp slime-asdf))
+    (slime-setup '(slime-fancy slime-quicklisp slime-asdf))
     (sp-local-pair 'lisp-mode "'" :nil :actions nil))
 #+END_SRC
 
@@ -629,7 +640,6 @@ TODO make todo search
     :mode ("\\.phtml\\'" "\\.tpl\\.php\\'" "\\.jsp\\'" "\\.as[cp]x\\'"
            "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.jst.ejs\\'"
            "\\.html?\\'" "\\.vue\\'")
-    :hook (web-mode . lsp-deferred)
     :config
     (add-hook 'web-mode-hook '(lambda () (impatient-mode t)))
     :bind (("<f5>" . cherry/impatient-in-the-browser))
@@ -638,7 +648,7 @@ TODO make todo search
   (use-package emmet-mode
     :defer t
     :after (web-mode)
-    :hook (sqml-mode web-mode css-mode))
+    :hook (sqml-mode web-mode css-mode html-mode))
 
 #+END_SRC
 
@@ -680,17 +690,15 @@ TODO make todo search
 
 *** Nim
 #+begin_src emacs-lisp
-  (use-package flycheck-nimsuggest
-    :defer t)
-
-  (use-package nim-mode
-    :after (flycheck-nimsuggest)
-    :defer t
-    :config
-    (add-hook 'nimsuggest-mode-hook 'flycheck-nimsuggest-setup)
-    (add-hook 'nim-mode-hook 'nimsuggest-mode)
-    (add-to-list 'eglot-server-programs '(nim-mode . ("/Users/cherry/.nimble/bin/nimlsp"))))
+    (use-package nim-mode
+      :init
+      (setq nimsuggest-path "~/.nimble/bin/nimsuggest")
+      :defer t
+      :config     (nimsuggest-flymake-setup))
 #+end_src
+
+#+RESULTS:
+: t
 
 *** Dart
 #+begin_src emacs-lisp
@@ -912,4 +920,10 @@ Source (Decoder): https://synthetic.garden/3y3.htm
             :url "https://github.com/SebastienWae/app-launcher.git"))
 
   (global-set-key (kbd "M-X") #'app-launcher-run-app)
+#+end_src
+
+* TRAMP
+** Docker Support
+#+begin_src emacs-lisp
+  (use-package docker-tramp)
 #+end_src
