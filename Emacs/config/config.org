@@ -84,6 +84,12 @@
 #+begin_src emacs-lisp
   (setq x-select-enable-clipboard t)
 #+end_src
+
+** Add custom scripts path
+#+begin_src emacs-lisp
+  (add-to-list 'load-path (concat user-emacs-directory "scripts"))
+#+end_src
+
 * Packages
 ** Repositories
 #+BEGIN_SRC emacs-lisp
@@ -155,7 +161,13 @@
   (setq modus-themes-syntax '(alt-syntax yellow-comments))
   (setq modus-themes-org-blocks 'gray-background)
 
-  (load-theme 'modus-vivendi t)
+  (if (string-equal system-type "darwin")
+      (progn
+        (require 'macos-theme)
+
+        (macos-theme-set-theme-cycle 'modus-operandi
+                                     'modus-vivendi))
+    (load-theme 'modus-vivendi))
 #+end_src
 
 *** Font
@@ -169,8 +181,8 @@
     (when (display-graphic-p)
       (progn
         (when (find-font (font-spec :name cherry/font-name))
-          (let ((modeline-font-size 16)
-                (font-size 16))
+          (let ((modeline-font-size 14)
+                (font-size 14))
             (add-to-list 'default-frame-alist (cons 'font (format "%s-%d" cherry/font-name font-size)))
             (set-face-attribute 'default nil :font (format "%s-%d" cherry/font-name font-size))
             (set-face-attribute 'mode-line nil :font (format "%s-%d" cherry/font-name modeline-font-size))
@@ -235,19 +247,19 @@
 ** EVIL
 #+begin_src emacs-lisp
   (use-package evil
-    :disabled
     :init
     (setq evil-want-integration t
           evil-want-keybinding nil)
     :config (evil-mode 1))
 
   (use-package evil-collection
-    :disabled
     :after evil
     :diminish evil-collection-unimpaired-mode
     :config
     (evil-collection-init))
 #+end_src
+
+#+RESULTS:
 
 ** Consult
 #+BEGIN_SRC emacs-lisp
@@ -292,11 +304,12 @@
 ** Indentation
 #+BEGIN_SRC emacs-lisp
   (setq-default indent-tabs-mode t)
-  (setq-default tab-width 4)
-  (setq-default standard-indent 4)
+  (setq-default tab-width 3)
+  (setq-default standard-indent 3)
   (defvaralias 'c-basic-offset 'tab-width)
   (setq-default electric-indent-inhibit t)
   (setq-default js-indent-level tab-width)
+  (setq-default typescript-indent-level js-indent-level)
 #+END_SRC
 
 *** Aggressive Indentation
@@ -318,14 +331,31 @@ This helps with alignment and prints out spaces for alignments the entire way in
     (smart-tabs-insinuate 'javascript1 'javascript))
 #+end_src
 
-** Strip Trailing Whitespace
+** Whitespace
 #+BEGIN_SRC emacs-lisp
-  (setq whitespace-style '(space-after-tab
-                           face))
-  (add-hook 'prog-mode-hook #'whitespace-mode)
+  (progn
+    ;; Make whitespace-mode with very basic background coloring for whitespaces.
+    ;; http://xahlee.info/emacs/emacs/whitespace-mode.html
+    (setq whitespace-style (quote (face spaces space-mark tab-mark)))
+
+    ;; Make whitespace-mode and whitespace-newline-mode use “¶” for end of line char and “▷” for tab.
+    (setq whitespace-display-mappings
+          ;; all numbers are unicode codepoint in decimal. e.g. (insert-char 182 1)
+          '(
+            (space-mark 32 [183] [46]) ; SPACE 32 「 」, 183 MIDDLE DOT 「·」, 46 FULL STOP 「.」
+            (newline-mark 10 [182 10]) ; LINE FEED,
+            (tab-mark 9 [9655 9] [92 9]) ; tab
+            )))
+  ;; (add-hook 'prog-mode-hook #'whitespace-mode)
 #+END_SRC
 
-#+RESULTS:
+*** Highlight Indent Guides
+#+BEGIN_SRC emacs-lisp
+  (use-package highlight-indent-guides
+    :defer t
+    :custom ((highlight-indent-guides-method 'fill))
+    :hook (prog-mode . highlight-indent-guides-mode))
+#+END_SRC
 
 ** Rainbow Delimiters
 Adds rainbow highlighting to brackets.
@@ -453,6 +483,14 @@ Automatically closes parentheses
 #+begin_src emacs-lisp
   (use-package orgit
     :defer t)
+#+end_src
+
+*** Todo-View
+#+begin_src emacs-lisp
+  (use-package magit-todos
+    :defer t
+    :config
+    (magit-todos-mode))
 #+end_src
 
 ** hl-todo
@@ -916,6 +954,7 @@ Source (Decoder): https://synthetic.garden/3y3.htm
 * EXWM
 #+begin_src emacs-lisp
   (use-package exwm
+    :disabled
     :config
     :when (eq system-type 'gnu/linux)
     (require 'exwm)
