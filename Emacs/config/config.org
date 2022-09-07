@@ -738,15 +738,14 @@ TODO make todo search
 
 *** Nim
 #+begin_src emacs-lisp
-    (use-package nim-mode
-      :init
-      (setq nimsuggest-path "~/.nimble/bin/nimsuggest")
-      :defer t
-      :config     (nimsuggest-flymake-setup))
+  (use-package nim-mode
+    :init
+    (setq nimsuggest-path "~/.nimble/bin/nimsuggest")
+    :defer t
+    :config
+    (nimsuggest-flymake-setup)
+    (add-hook 'nim-mode-hook (lambda () (run-hooks 'prog-mode-hook))))
 #+end_src
-
-#+RESULTS:
-: t
 
 *** Dart
 #+begin_src emacs-lisp
