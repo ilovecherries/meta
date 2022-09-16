@@ -310,6 +310,9 @@
   (setq-default electric-indent-inhibit t)
   (setq-default js-indent-level tab-width)
   (setq-default typescript-indent-level js-indent-level)
+  ;; if i /really/ need this, it will be handled by `dtrt-indent'
+  (setq-default python-guess-indent nil)
+  (setq-default python-indent-offset tab-width)
 #+END_SRC
 
 *** Aggressive Indentation
@@ -629,6 +632,11 @@ TODO make todo search
   ;; (add-hook 'js-mode-hook #'lsp-deferred)
   (use-package js2-mode
     :hook (js-mode . js2-minor-mode))
+  (use-package javascript
+    :config
+    (add-hook 'js-mode-hook
+              #'(lambda ()
+                  (setq indent-tabs-mode t))))
 #+END_SRC
 
 **** REPL
@@ -787,7 +795,7 @@ TODO make todo search
   ;; todo: need to make these variables from nix-shellx'
   (use-package plantuml-mode
     :config
-    (let ((path  "/nix/store/p9ajjyxf6gfwpa1x7ar8jx2g3iv6p4q9-plantuml-1.2022.3/lib/plantuml.jar"))
+    (let ((path (expand-file-name "~/bin/plantuml.jar")))
       (setq plantuml-jar-path path)
       (setq plantuml-default-exec-mode 'jar)
       (setq org-plantuml-jar-path (expand-file-name path))
@@ -838,6 +846,11 @@ https://github.com/TobiasZawada/org-yt
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((plantuml . t)))
+#+END_SRC
+
+** org-ref
+#+BEGIN_SRC emacs-lisp
+  (use-package org-ref)
 #+END_SRC
 
 #+RESULTS:
