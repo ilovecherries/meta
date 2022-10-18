@@ -131,6 +131,15 @@
   (use-package quelpa)
 #+end_src
 
+*** Quelpa Use-package
+#+begin_src emacs-lisp
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
+  (require 'quelpa-use-package)
+#+end_src
+
 * Appearance
 ** Icons
 #+begin_src emacs-lisp
@@ -208,10 +217,9 @@
   (column-number-mode 1)
 #+END_SRC
 
-** Moody
+*** Moody
 #+begin_src emacs-lisp
   (use-package moody
-    :disabled
     :config
     (setq x-underline-at-descent-line t)
     (moody-replace-mode-line-buffer-identification)
@@ -242,6 +250,15 @@
     :disabled t
     :config (beacon-mode 1))
 #+end_src
+
+** YeQuake
+#+BEGIN_SRC emacs-lisp
+  (quelpa '(yequake
+            :fetcher github
+            :repo "alphapapa/yequake"))
+#+END_SRC
+
+#+RESULTS:
 
 * Navigation
 ** EVIL
@@ -306,7 +323,7 @@
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 3)
   (setq-default standard-indent 3)
-  (defvaralias 'c-basic-offset 'tab-width)
+  (setq-default c-basic-offset tab-width)
   (setq-default electric-indent-inhibit t)
   (setq-default js-indent-level tab-width)
   (setq-default typescript-indent-level js-indent-level)
@@ -334,6 +351,15 @@ This helps with alignment and prints out spaces for alignments the entire way in
     (smart-tabs-insinuate 'javascript1 'javascript))
 #+end_src
 
+*** Indent Blank Lines
+Provided by 12Me21
+this isn't working ???
+
+#+BEGIN_SRC emacs-lisp
+  (require 'blank-line-indent)
+  (setq indent-blank-lines t)
+#+END_SRC
+
 ** Whitespace
 #+BEGIN_SRC emacs-lisp
   (progn
@@ -355,6 +381,7 @@ This helps with alignment and prints out spaces for alignments the entire way in
 *** Highlight Indent Guides
 #+BEGIN_SRC emacs-lisp
   (use-package highlight-indent-guides
+    :disabled
     :defer t
     :custom ((highlight-indent-guides-method 'fill))
     :hook (prog-mode . highlight-indent-guides-mode))
@@ -407,22 +434,24 @@ Highlights the parentheses that you are currently inside
 
 *** Terminal
 #+begin_src emacs-lisp
-  (quelpa '(popon
-            :fetcher git
-            :url "https://codeberg.org/akib/emacs-popon.git"))
+  (use-package popon
+    :defer t
+    :quelpa ((popon :fetcher git
+                    :url "https://codeberg.org/akib/emacs-popon.git")))
 
-  (quelpa '(corfu-terminal
-            :fetcher git
-            :url "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+  (use-package corfu-terminal
+    :defer t
+    :quelpa ((corfu-terminal :fetcher git
+                             :url "https://codeberg.org/akib/emacs-corfu-terminal.git")))
 #+end_src
 
 **** Documentation
 #+begin_src emacs-lisp
-  (quelpa '(corfu-doc-terminal
-            :fetcher git
-            :url "https://codeberg.org/akib/emacs-corfu-doc-terminal.git"))
-
-  (add-hook 'corfu-terminal-mode-hook 'corfu-doc-terminal-mode)
+  (use-package corfu-doc-terminal
+    :defer t
+    :hook (corfu-terminal-mode . corfu-doc-terminal-mode)
+    :quelpa ((corfu-doc-terminal :fetcher git
+                                 :url "https://codeberg.org/akib/emacs-corfu-doc-terminal.git")))
 #+end_src
 
 ** FlyMake
@@ -530,9 +559,24 @@ TODO make todo search
 
 ** LSP Bridge
 #+begin_src emacs-lisp
-  (quelpa '(lsp-bridge
-            :fetcher git
-            :url "https://github.com/manateelazycat/lsp-bridge.git"))
+  (defconst cherry/lsp-bridge-location (expand-file-name (concat user-emacs-directory
+                                                                 "lsp-bridge"))
+    "Location of the LSP bridge.")
+
+  (when (file-directory-p cherry/lsp-bridge-location)
+    (add-to-list 'load-path cherry/lsp-bridge-location)
+    (require 'lsp-bridge))
+#+end_src
+
+*** Install Dependencies Helper
+#+begin_src emacs-lisp
+  (defun lsp-bridge-install-python-dependencies ()
+    "Install Python dependencies for LSP bridge."
+    (interactive)
+    (start-process "*lsp-bridge-dependencies*"
+                   "*lsp-bridge-dependencies*"
+                   lsp-bridge-python-command "-m"
+                   "pip" "install" "epc" "orjson"))
 #+end_src
 
 ** LSP
@@ -631,12 +675,10 @@ TODO make todo search
 #+BEGIN_SRC emacs-lisp
   ;; (add-hook 'js-mode-hook #'lsp-deferred)
   (use-package js2-mode
-    :hook (js-mode . js2-minor-mode))
-  (use-package javascript
-    :config
-    (add-hook 'js-mode-hook
-              #'(lambda ()
-                  (setq indent-tabs-mode t))))
+    :hook (js-mode . js2-minor-mode)
+    ;; :custom
+    ;; ()
+    :config (setq-default js2-strict-missing-semi-warning nil))
 #+END_SRC
 
 **** REPL
@@ -829,8 +871,8 @@ TODO make todo search
 
 * Org
 #+BEGIN_SRC emacs-lisp
-  (add-hook 'org-mode-hook #'org-indent-mode)
   (add-hook 'org-mode-hook #'visual-line-mode)
+  (add-hook 'org-mode-hook #'org-indent-mode)
   (setq org-adapt-indentation nil)
 #+END_SRC
 
@@ -853,7 +895,23 @@ https://github.com/TobiasZawada/org-yt
   (use-package org-ref)
 #+END_SRC
 
-#+RESULTS:
+** valign
+Pixel perfect table ???
+#+BEGIN_SRC emacs-lisp
+  (use-package valign
+    :disabled
+    :defer t
+    :custom
+    (valign-fancy-bar t)
+    :hook (org-mode . valign-mode))
+#+END_SRC
+
+** Modern org-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package org-modern
+    :config
+    (global-org-modern-mode))
+#+END_SRC
 
 * EWW
 ** Center text and wrap
