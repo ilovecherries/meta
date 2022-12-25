@@ -35,7 +35,7 @@
  '(help-at-pt-display-when-idle '(flymake-diagnostic) nil (help-at-pt))
  '(help-at-pt-timer-delay 0.1)
  '(package-selected-packages
-	'(quelpa-use-package yequake org-modern valign lambda-line ctrlf javascript javascript-mode js-mode org-ref pyvenv sublimity magit-todos highlight-indent-guides evil orgit skewer-mode docker-tramp mmm-mode polymode smart-tabs-mode js2-mode hl-todo app-launcher exwm doom-modeline tree-sitter-langs tree-sitter emms elcord lsp-bridge smilebasic d-mode cider clojure-mode moody vundo corfu-doc-terminal corfu-doc corfu-terminal popon quelpa dtrt-indent pug-mode plantuml-mode org-yt haskell-mode moe-theme kind-icon orderless eldoc-box eglot selectrum yasnippet-snippets which-key web-mode vue-mode visual-fill-column use-package undo-tree typescript-mode shell-pop rustic rg rainbow-mode rainbow-delimiters page-break-lines ob-mermaid ob-ipython nim-mode multi-vterm mermaid-mode magit lsp-python-ms lsp-java lsp-dart js-comint impatient-mode hover expand-region evil-collection emmet-mode dumb-jump diminish diff-hl dashboard csharp-mode corfu consult cmake-mode beacon all-the-icons aggressive-indent ag))
+	'(denote sly hide-mode-line origami vertico-posframe all-the-icons-completion svelte-mode unicode-fonts json-mode prism goggles evil-goggles org-src-context valign lambda-line javascript javascript-mode js-mode pyvenv sublimity magit-todos highlight-indent-guides skewer-mode docker-tramp smart-tabs-mode app-launcher exwm doom-modeline tree-sitter lsp-bridge smilebasic moody vundo corfu-doc-terminal corfu-terminal popon pug-mode plantuml-mode org-yt moe-theme selectrum vue-mode visual-fill-column undo-tree shell-pop rainbow-mode rainbow-delimiters page-break-lines ob-mermaid ob-ipython nim-mode lsp-python-ms lsp-java impatient-mode hover dumb-jump beacon ag))
  '(safe-local-variable-values
 	'((indent-tabs-mode . 1)
 	  (js2-basic-offset . 3)
@@ -46,4 +46,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(evil-goggles-change-face ((t (:inherit diff-removed))))
+ '(evil-goggles-delete-face ((t (:inherit diff-removed))))
+ '(evil-goggles-paste-face ((t (:inherit diff-added))))
+ '(evil-goggles-undo-redo-add-face ((t (:inherit diff-added))))
+ '(evil-goggles-undo-redo-change-face ((t (:inherit diff-changed))))
+ '(evil-goggles-undo-redo-remove-face ((t (:inherit diff-removed))))
+ '(evil-goggles-yank-face ((t (:inherit diff-changed))))
  '(fixed-pitch-serif ((t (:family cherry/font-name)))))

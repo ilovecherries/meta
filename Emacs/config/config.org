@@ -17,6 +17,7 @@
 ** Warnings
 #+BEGIN_SRC emacs-lisp
   (setq warning-minimal-level :emergency)
+  (setq native-comp-async-report-warnings-errors nil)
 #+END_SRC
 
 ** Don't ask to kill processes when exiting
@@ -181,32 +182,55 @@
 
 *** Font
 #+BEGIN_SRC emacs-lisp
-  (defconst cherry/font-name "Hack Nerd Font FC Ligatured CCG")
+  (defconst cherry/font-name "Cascadia Code")
 
   (defun cherry/set-font (frame)
-    "Configure fonts on FRAME creation.
+	 "Configure fonts on FRAME creation.
   Ref: https://stackoverflow.com/a/41355013"
-    (select-frame frame)
-    (when (display-graphic-p)
-      (progn
-        (when (find-font (font-spec :name cherry/font-name))
-          (let ((modeline-font-size 14)
-                (font-size 14))
-            (add-to-list 'default-frame-alist (cons 'font (format "%s-%d" cherry/font-name font-size)))
-            (set-face-attribute 'default nil :font (format "%s-%d" cherry/font-name font-size))
-            (set-face-attribute 'mode-line nil :font (format "%s-%d" cherry/font-name modeline-font-size))
-            (set-face-attribute 'mode-line-inactive nil :font (format "%s-%d" cherry/font-name modeline-font-size))
-            (custom-set-faces '(fixed-pitch-serif ((t (:family cherry/font-name))))))))))
+	 (select-frame frame)
+	 (when (display-graphic-p)
+		(progn
+		  (when (find-font (font-spec :name cherry/font-name))
+			 (let ((modeline-font-size 12)
+					 (font-size 14))
+				(add-to-list 'default-frame-alist (cons 'font (format "%s-%d" cherry/font-name font-size)))
+				(set-fontset-font t 'unicode "Apple Symbols" nil 'prepend)
+				(set-face-attribute 'default nil :font (format "%s-%d" cherry/font-name font-size))
+				(set-face-attribute 'mode-line nil :font (format "%s-%d" cherry/font-name modeline-font-size))
+				(set-face-attribute 'mode-line-inactive nil :font (format "%s-%d" cherry/font-name modeline-font-size))
+				(custom-set-faces '(fixed-pitch-serif ((t (:family cherry/font-name))))))))))
 
   (add-hook 'after-make-frame-functions #'cherry/set-font)
   (mapc #'cherry/set-font (frame-list))
 #+END_SRC
 
+**** Unicode Fonts
+#+begin_src emacs-lisp
+  (use-package unicode-fonts
+	 :config
+	 (unicode-fonts-setup))
+#+end_src
+
+**** Fix Fonts in macOS
+#+begin_src emacs-lisp
+  ;; (defun bbextra-fix-fontset-font (from &optional to family)
+  ;;   "Make characters FROM to TO come from FAMILY.  
+  ;; 	 Default value of TO is FROM, and of FAMILY is FreeSerif (which 
+  ;; 	 seems to have some of the characters)" 
+  ;;   (set-fontset-font t (cons from (or to from))
+  ;; 						  (font-spec :family (or family "Apple Symbols"))))
+  ;; 
+  ;; 
+  ;; (bbextra-fix-fontset-font #x10036)
+  (set-fontset-font t '(#x10036 . #x10036) (font-spec :family "Noto Sans Linear B"))
+#+end_src
+
 #+RESULTS:
 
 ** Remove ugly GUI components
 #+BEGIN_SRC emacs-lisp
-  (menu-bar-mode -1)
+  (unless (string-equal system-type "darwin")
+	 (menu-bar-mode -1))
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
 #+END_SRC
@@ -220,12 +244,23 @@
 *** Moody
 #+begin_src emacs-lisp
   (use-package moody
-    :config
-    (setq x-underline-at-descent-line t)
-    (moody-replace-mode-line-buffer-identification)
-    (moody-replace-vc-mode)
-    (moody-replace-eldoc-minibuffer-message-function))
+    :disabled t
+	 :config
+	 (setq x-underline-at-descent-line t)
+	 (moody-replace-mode-line-buffer-identification t)
+	 (moody-replace-vc-mode t)
+	 (moody-replace-eldoc-minibuffer-message-function t))
 #+end_src
+
+*** Display Time
+#+BEGIN_SRC emacs-lisp
+  (display-time-mode 1)
+#+END_SRC
+
+*** Display Battery
+#+BEGIN_SRC emacs-lisp
+  (display-battery-mode 1)
+#+END_SRC
 
 ** Fill Column
 #+BEGIN_SRC emacs-lisp
@@ -258,7 +293,15 @@
             :repo "alphapapa/yequake"))
 #+END_SRC
 
-#+RESULTS:
+** Goggles
+#+BEGIN_SRC emacs-lisp
+  (use-package goggles
+    :defer t
+    :diminish
+    :hook ((prog-mode text-mode) . goggles-mode)
+    :config
+    (setq-default goggles-pulse t))
+#+END_SRC
 
 * Navigation
 ** EVIL
@@ -276,7 +319,12 @@
     (evil-collection-init))
 #+end_src
 
-#+RESULTS:
+*** Folding Support
+#+begin_src emacs-lisp
+  (use-package origami
+	 :quelpa ((origami :fetcher "github" :repo "elp-revive/origami.el") :upgrade t)
+	 :hook (prog-mode . origami-mode))
+#+end_src
 
 ** Consult
 #+BEGIN_SRC emacs-lisp
@@ -305,6 +353,32 @@
     :init
     (vertico-mode))
 #+END_SRC
+
+*** Vertico Posframe
+#+begin_src emacs-lisp
+  (use-package vertico-posframe
+	 :config
+	 (vertico-posframe-mode 0))
+#+end_src
+
+** Maginalia
+#+begin_src emacs-lisp
+  (use-package marginalia
+	 :custom
+	 (marginalia-max-relative-age 0)
+	 (marginalia-align 'right)
+	 :init
+	 (marginalia-mode))
+#+end_src
+
+** all-the-icons-completion
+#+begin_src emacs-lisp
+  (use-package all-the-icons-completion
+	 :after (marginalia all-the-icons)
+	 :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+	 :config
+	 (all-the-icons-completion-mode))
+#+end_src
 
 ** Undo-tree
 #+BEGIN_SRC emacs-lisp
@@ -381,7 +455,6 @@ this isn't working ???
 *** Highlight Indent Guides
 #+BEGIN_SRC emacs-lisp
   (use-package highlight-indent-guides
-    :disabled
     :defer t
     :custom ((highlight-indent-guides-method 'fill))
     :hook (prog-mode . highlight-indent-guides-mode))
@@ -404,33 +477,32 @@ Highlights the parentheses that you are currently inside
 ** Corfu (Auto-completion)
 #+BEGIN_SRC emacs-lisp
   (use-package corfu
-    :custom
-    (corfu-auto t)
-    (corfu-auto-prefix 1)
-    (corfu-auto-delay 0)
-    :init
-    ;; in the future, it will be exclusive to just programming modes.
-    (global-corfu-mode))
+    :hook (corfu-mode . corfu-popupinfo-mode)
+	 :custom
+	 (corfu-auto t)
+	 (corfu-auto-prefix 1)
+	 (corfu-auto-delay 0)
+	 (corfu-min-width 80)
+	 (corfu-max-width corfu-min-width)
+	 (corfu-scroll-margin 4)
+	 :init
+	 ;; in the future, it will be exclusive to just programming modes.
+	 (global-corfu-mode))
 #+END_SRC
 
 *** Icons
 #+BEGIN_SRC emacs-lisp
   (use-package kind-icon
-    :ensure t
-    :after corfu
-    :custom
-    (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-    :config
-   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+	 :ensure t
+	 :after corfu
+	 :custom
+	 (kind-icon-use-icons t)
+	 (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+	 (kind-icon-blend-frac 0.08)
+	 (kind-icon-blend-background nil)
+	 :config
+	 (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+END_SRC
-
-*** Doc
-#+begin_src emacs-lisp
-  (use-package corfu-doc
-    :hook (corfu-mode . corfu-doc-mode))
-#+end_src
-
-#+RESULTS:
 
 *** Terminal
 #+begin_src emacs-lisp
@@ -559,13 +631,13 @@ TODO make todo search
 
 ** LSP Bridge
 #+begin_src emacs-lisp
-  (defconst cherry/lsp-bridge-location (expand-file-name (concat user-emacs-directory
-                                                                 "lsp-bridge"))
-    "Location of the LSP bridge.")
+  ;; (defconst cherry/lsp-bridge-location (expand-file-name (concat user-emacs-directory
+  ;;                                                                "lsp-bridge"))
+  ;;   "Location of the LSP bridge.")
 
-  (when (file-directory-p cherry/lsp-bridge-location)
-    (add-to-list 'load-path cherry/lsp-bridge-location)
-    (require 'lsp-bridge))
+  ;; (when (file-directory-p cherry/lsp-bridge-location)
+  ;;   (add-to-list 'load-path cherry/lsp-bridge-location)
+  ;;   (require 'lsp-bridge))
 #+end_src
 
 *** Install Dependencies Helper
@@ -615,11 +687,18 @@ TODO make todo search
 ** Guess Indent
 #+begin_src emacs-lisp
   (use-package dtrt-indent
-    :diminish
-    :hook (prog-mode . dtrt-indent-mode))
+	 :disabled t
+	 :diminish
+	 :hook (prog-mode . dtrt-indent-mode))
 #+end_src
 
 #+RESULTS:
+
+** Prism
+#+BEGIN_SRC emacs-lisp
+  (use-package prism
+    :defer t)
+#+END_SRC
 
 ** Programming Languages
 *** C
@@ -699,27 +778,62 @@ TODO make todo search
     (add-to-list 'eglot-server-programs '(vue-mode . ("/opt/homebrew/bin/vue-language-server" "--stdio"))))
 #+end_src
 
+**** Svelte
+#+begin_src emacs-lisp
+  (use-package svelte-mode)
+#+end_src
+
+**** Auto-close all functions
+#+begin_src emacs-lisp
+  ;; (defun origami-auto-functions-javascript ()
+  ;; 	 "Auto-closes all function definitions for JavaScript automatically."
+  ;; 	 (interactive)
+  ;; 	 (origami-auto-apply-patterns
+  ;; 	  (list 
+  ;; 		(rx "("
+  ;; 			 (zero-or-more not-newline)
+  ;; 			 ")"
+  ;; 			 (zero-or-more whitespace)
+  ;; 			 (zero-or-one "=>")
+  ;; 			 (zero-or-more whitespace)
+  ;; 			 "{"))))
+  ;; (add-hook 'js-mode-hook #'origami-auto-functions-javascript)
+#+end_src
+
 *** TypeScript
 #+BEGIN_SRC emacs-lisp
   (use-package typescript-mode
     :defer t)
 #+END_SRC
 
-*** Common LISP (SLIME)
+*** Common LISP
+**** SLIME
 #+BEGIN_SRC emacs-lisp
   (use-package slime
-    :defer t
-    :init
-    (setq inferior-lisp-program "sbcl")
-    :config
-    (slime-setup '(slime-fancy slime-quicklisp slime-asdf))
-    (sp-local-pair 'lisp-mode "'" :nil :actions nil))
+	 :disabled
+	 :defer t
+	 :init
+	 (setq inferior-lisp-program "sbcl")
+	 :config
+	 (slime-setup '(slime-fancy slime-quicklisp slime-asdf))
+	 (sp-local-pair 'lisp-mode "'" :nil :actions nil))
 #+END_SRC
+
+**** Sly
+#+begin_src emacs-lisp
+  (use-package sly
+	 :defer t
+	 :init
+	 (setq inferior-lisp-program "sbcl")
+	 :config
+	 (require 'sly-autoloads))
+#+end_src
 
 **** org-babel support
 #+BEGIN_SRC emacs-lisp
   (require 'ob-lisp)
 #+END_SRC
+
 
 *** HTML
 #+BEGIN_SRC emacs-lisp
@@ -791,10 +905,16 @@ TODO make todo search
   (use-package nim-mode
     :init
     (setq nimsuggest-path "~/.nimble/bin/nimsuggest")
-    :defer t
     :config
-    (nimsuggest-flymake-setup)
     (add-hook 'nim-mode-hook (lambda () (run-hooks 'prog-mode-hook))))
+#+end_src
+
+**** Nimlsp - LSP Bridge Support
+#+BEGIN_SRC emacs-lisp
+  ;; (add-to-list 'lsp-bridge-single-lang-server-mode-list '(nim-mode . "nimlangserver"))
+#+end_src
+#+BEGIN_SRC emacs-lisp
+  ;; (add-to-list 'lsp-bridge-default-mode-hooks 'nim-mode-hook)
 #+end_src
 
 *** Dart
@@ -869,10 +989,16 @@ TODO make todo search
     (add-to-list 'eglot-server-programs '(d-mode . ("~/bin/serve-d"))))
 #+end_src
 
+*** JSON
+#+BEGIN_SRC emacs-lisp
+  (use-package json-mode
+    :defer t
+    :hook (json-mode . prism-mode))
+#+END_SRC
+
 * Org
 #+BEGIN_SRC emacs-lisp
   (add-hook 'org-mode-hook #'visual-line-mode)
-  (add-hook 'org-mode-hook #'org-indent-mode)
   (setq org-adapt-indentation nil)
 #+END_SRC
 
@@ -912,6 +1038,12 @@ Pixel perfect table ???
     :config
     (global-org-modern-mode))
 #+END_SRC
+
+** Denote
+#+begin_src emacs-lisp
+  (use-package denote
+	 :defer t)
+#+end_src
 
 * EWW
 ** Center text and wrap
@@ -985,22 +1117,20 @@ Source (Decoder): https://synthetic.garden/3y3.htm
 * Elcord
 #+begin_src emacs-lisp
   (use-package elcord
-    :config
-    (defun cy/elcord-project-name (status)
-      "Append the current project name to the buffer STATUS."
-      (concat status
-              (if (project-current)
-                  (format " (%s)"
-                          (file-name-nondirectory
-                           (directory-file-name (project-root (project-current)))))
-                "")))
-    (advice-add 'elcord-buffer-details-format
-                :filter-return #'cy/elcord-project-name)
-    (elcord-mode))
+	 :disabled
+	 :config
+	 (defun cy/elcord-project-name (status)
+		"Append the current project name to the buffer STATUS."
+		(concat status
+				  (if (project-current)
+						(format " (%s)"
+								  (file-name-nondirectory
+									(directory-file-name (project-root (project-current)))))
+					 "")))
+	 (advice-add 'elcord-buffer-details-format
+					 :filter-return #'cy/elcord-project-name)
+	 (elcord-mode))
 #+end_src
-
-#+RESULTS:
-: t
 
 * EMMS
 #+begin_src emacs-lisp
@@ -1043,6 +1173,7 @@ Source (Decoder): https://synthetic.garden/3y3.htm
 
 * TRAMP
 ** Docker Support
+Emacs 29 has built-in Docker TRAMP support
 #+begin_src emacs-lisp
   (use-package docker-tramp)
 #+end_src
